@@ -19,6 +19,8 @@ jobs:
         run: |
           brew tap-new --no-git caair/local
           cp Formula/*.rb "$(brew --repository caair/local)/Formula/"
+          # Homebrew 7 loads formulae from non-official taps only once they are trusted.
+          brew trust --tap caair/local
       - name: Audit
         run: brew audit --strict --formula caair/local/herdr-caair
       - name: Install from source

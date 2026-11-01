@@ -5,8 +5,12 @@
 [herdr](https://github.com/herdrdev/herdr) built from the [CenterForAgenticAI fork](https://github.com/CenterForAgenticAI/herdr) branch `caair`: upstream herdr plus desktop regions, which let plugins add docked side and bottom panels.
 
 ```bash
-brew install centerforagenticai/tap/herdr-caair
+brew tap centerforagenticai/tap
+brew trust --tap centerforagenticai/tap
+brew install herdr-caair
 ```
+
+Homebrew 7 and later refuse to load a formula from a tap you have not trusted, so the `brew trust` step is required.
 
 It builds from source (Rust and Zig 0.16) and conflicts with the upstream `herdr` formula, because both install a `herdr` binary. Uninstall `herdr` first.
 
