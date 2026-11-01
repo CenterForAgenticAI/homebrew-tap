@@ -1,0 +1,27 @@
+name: formula
+
+# Build and test the formula from source on macOS whenever it changes.
+on:
+  push:
+    branches: [main]
+    paths: [Formula/**]
+  pull_request:
+    paths: [Formula/**]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tap this checkout
+        run: |
+          brew tap-new --no-git caair/local
+          cp Formula/*.rb "$(brew --repository caair/local)/Formula/"
+      - name: Audit
+        run: brew audit --strict --formula caair/local/herdr-caair
+      - name: Install from source
+        run: brew install --build-from-source caair/local/herdr-caair
+      - name: Test
+        run: brew test caair/local/herdr-caair
