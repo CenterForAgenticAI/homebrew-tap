@@ -3,7 +3,7 @@ class HerdrCaair < Formula
   homepage "https://github.com/CenterForAgenticAI/herdr"
   url "https://github.com/CenterForAgenticAI/herdr/archive/refs/tags/v0.9.5-caair.1.tar.gz"
   version "0.9.5-caair.1"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "c9b6f252b5a91f580375a8f2f8870e351ce6223e25f6de8947cc1e19f03ce138"
   license "Apache-2.0"
   head "https://github.com/CenterForAgenticAI/herdr.git", branch: "caair"
 
