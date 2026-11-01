@@ -23,3 +23,5 @@ scripts/release.sh [fork commit or ref, default origin/caair]
 ```
 
 The script runs the fork's gate on the commit, tags it, pushes the tag to the fork, and commits the new formula URL, version and checksum here. The `formula` workflow then builds and tests the formula on macOS.
+
+Releases are automatic. The fork's rebase pipeline ([fork-sync](https://github.com/CenterForAgenticAI/fork-sync) `rebase/`) runs this script through `RELEASE_CMD` each time it publishes a new `caair` without needing review. A run that needs review publishes nothing, so nothing is released until a person publishes it and the next run picks it up.
