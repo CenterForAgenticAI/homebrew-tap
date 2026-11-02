@@ -41,8 +41,10 @@ fail() { echo "$*" >&2; exit 1; }
 
 [ -d "$WORK/.git" ] || git clone -q "https://github.com/$FORK" "$WORK"
 git -C "$WORK" fetch -q --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
-# The mirror copies no tags; the release tags come from penso.
-git -C "$WORK" fetch -q --no-tags "https://github.com/$UPSTREAM" '+refs/tags/v2*:refs/tags/v2*'
+# The mirror copies no tags; the release tags come from penso. --no-prune:
+# under fetch.prune=true this fetch would delete our v2*-caair.* tags, which
+# penso lacks, and the next release would reuse a published tag.
+git -C "$WORK" fetch -q --no-tags --no-prune "https://github.com/$UPSTREAM" '+refs/tags/v2*:refs/tags/v2*'
 sha=$(git -C "$WORK" rev-parse "${1:-origin/caair}^{commit}")
 base=$(git -C "$WORK" describe --tags --abbrev=0 --match 'v2*' --exclude '*-caair.*' "$sha") \
   || fail "no penso release tag below $sha"
@@ -60,6 +62,10 @@ else
   n=$(git -C "$WORK" tag --list "v$upstream-caair.*" | sed "s/^v$upstream-caair\.//" | sort -n | tail -1)
   tag="v$upstream-caair.$(( ${n:-0} + 1 ))"
 fi
+# Never publish a commit under a tag the fork already gave another commit.
+published=$(git -C "$WORK" ls-remote origin "refs/tags/$tag^{}" | cut -f1)
+[ -z "$published" ] || [ "$published" = "$sha" ] \
+  || fail "$tag already names $published on $FORK, not $sha"
 version=${tag#v}
 asset="Herdr-$version-universal-apple-darwin.dmg"
 git -C "$WORK" checkout -q --detach "$sha"
