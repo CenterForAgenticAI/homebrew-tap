@@ -1,6 +1,6 @@
 cask "herdr-gpui-caair" do
-  version "20261102.2-caair.2"
-  sha256 "d27a5eed59ddc8c8e4e9dd601d49e9379dd7c2190c475935e14606a47e980f4c"
+  version "20261103.1-caair.1"
+  sha256 "5b217bd524366fc5d33a5f77aede1f904000786d61f7e3a56a288cb946f9513f"
 
   url "https://github.com/CenterForAgenticAI/herdr-gpui/releases/download/v#{version}/Herdr-#{version}-universal-apple-darwin.dmg"
   name "Herdr"
