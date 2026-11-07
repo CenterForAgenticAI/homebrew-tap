@@ -1,5 +1,5 @@
 #!/bin/bash
-# Release herdr-gpui-caair: build the Herdr app from a CenterForAgenticAI/herdr-gpui
+# Release herdr-gpui-caair: build the Sheprd app (formerly Herdr UI) from a CenterForAgenticAI/herdr-gpui
 # commit, tag it v<upstream>-caair.<n>, attach its DMG to a GitHub release on
 # the fork, and point Casks/herdr-gpui-caair.rb at it.
 #
@@ -67,7 +67,7 @@ published=$(git -C "$WORK" ls-remote origin "refs/tags/$tag^{}" | cut -f1)
 [ -z "$published" ] || [ "$published" = "$sha" ] \
   || fail "$tag already names $published on $FORK, not $sha"
 version=${tag#v}
-asset="Herdr-$version-universal-apple-darwin.dmg"
+asset="Sheprd-$version-universal-apple-darwin.dmg"
 git -C "$WORK" checkout -q --detach "$sha"
 git -C "$WORK" clean -qfd
 
@@ -118,22 +118,24 @@ signing_setup() {
 }
 
 # The fork's build-macos.sh sources the checkout's .envrc for herdr_sign; this
-# one signs with the identity above and makes the DMG it expects.
+# one signs with the identity above and makes the DMG it expects. The helper
+# list is package-macos.sh's: each companion plus its legacy herdr-* copy.
 write_envrc() {
   cat > "$WORK/.envrc" <<'ENVRC'
 herdr_sign() {
   local version=$1 app=$2 out=$3 executable image
-  local entitlements="$release_root/assets/macos/Herdr.entitlements"
-  for executable in herdr-acp herdr-remote-control herdr-automate herdr-nearby herdr-core; do
+  local entitlements="$release_root/assets/macos/Sheprd.entitlements"
+  for executable in sheprd-acp sheprd-remote-control sheprd-automate sheprd-nearby herdr-core \
+      herdr-acp herdr-remote-control herdr-automate herdr-nearby; do
     codesign --force --sign "$HERDR_SIGN_IDENTITY" --options runtime --timestamp=none "$app/Contents/MacOS/$executable"
   done
-  codesign --force --sign "$HERDR_SIGN_IDENTITY" --options runtime --timestamp=none --entitlements "$entitlements" "$app/Contents/MacOS/Herdr"
+  codesign --force --sign "$HERDR_SIGN_IDENTITY" --options runtime --timestamp=none --entitlements "$entitlements" "$app/Contents/MacOS/sheprd"
   codesign --force --sign "$HERDR_SIGN_IDENTITY" --options runtime --timestamp=none --entitlements "$entitlements" "$app"
   codesign --verify --deep --strict "$app"
   image=$(mktemp -d)
-  ditto "$app" "$image/Herdr.app"
+  ditto "$app" "$image/Sheprd.app"
   ln -s /Applications "$image/Applications"
-  hdiutil create -quiet -volname Herdr -srcfolder "$image" -format UDZO -ov "$out/Herdr-$version-universal-apple-darwin.dmg"
+  hdiutil create -quiet -volname Sheprd -srcfolder "$image" -format UDZO -ov "$out/Sheprd-$version-universal-apple-darwin.dmg"
   rm -rf "$image"
 }
 ENVRC
@@ -145,7 +147,7 @@ build() {
   write_envrc
   (cd "$WORK" && HERDR_UPDATE_PUBLIC_KEY=$UPDATE_KEY HERDR_UPDATES=package \
     bash scripts/release/build-macos.sh "$upstream" >&2)
-  printf '%s\n' "$WORK/target/distribution/$upstream/Herdr-$upstream-universal-apple-darwin.dmg"
+  printf '%s\n' "$WORK/target/distribution/$upstream/Sheprd-$upstream-universal-apple-darwin.dmg"
 }
 
 dmg=""
@@ -175,8 +177,8 @@ else
   if gh release view "$tag" -R "$FORK" >/dev/null 2>&1; then
     gh release upload "$tag" "$upload" -R "$FORK" --clobber
   else
-    gh release create "$tag" "$upload" -R "$FORK" --verify-tag --title "Herdr $version" \
-      --notes "Herdr UI $upstream (penso $base) with herdr desktop regions. Install with: brew install --cask centerforagenticai/tap/herdr-gpui-caair"
+    gh release create "$tag" "$upload" -R "$FORK" --verify-tag --title "Sheprd $version" \
+      --notes "Sheprd $upstream (penso $base) with herdr desktop regions and GitLab custom headers. Install with: brew install --cask centerforagenticai/tap/herdr-gpui-caair"
   fi
 fi
 
