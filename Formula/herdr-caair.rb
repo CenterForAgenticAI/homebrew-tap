@@ -1,9 +1,9 @@
 class HerdrCaair < Formula
   desc "Agent multiplexer that lives in your terminal (CAAIR fork with desktop regions)"
   homepage "https://github.com/CenterForAgenticAI/herdr"
-  url "https://github.com/CenterForAgenticAI/herdr/archive/refs/tags/v0.9.5-caair.2.tar.gz"
-  version "0.9.5-caair.2"
-  sha256 "6d7b357d9535ceeb777db9544bb5aee82ed3ce060f16e7760fbac2d24976e89b"
+  url "https://github.com/CenterForAgenticAI/herdr/archive/refs/tags/v0.9.5-caair.3.tar.gz"
+  version "0.9.5-caair.3"
+  sha256 "e5d9425fb00c098eee8fb4a3ad6ae74a8baf53bbf723312f7865d47b08239a31"
   license "Apache-2.0"
   head "https://github.com/CenterForAgenticAI/herdr.git", branch: "caair"
 
