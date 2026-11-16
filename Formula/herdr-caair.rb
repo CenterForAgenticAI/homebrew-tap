@@ -17,11 +17,31 @@ class HerdrCaair < Formula
 
   conflicts_with "herdr", because: "both install a `herdr` binary"
 
+  # zig's own HTTPS client fails with TlsInitializationFailed inside Homebrew's
+  # sandboxed fetch phase on Homebrew 7.0.13 for these two hosts (Let's Encrypt
+  # chains), while its other dependencies download fine. Homebrew downloads
+  # these with curl instead; `fetch` hands them to zig. Pins match
+  # vendor/libghostty-vt/build.zig.zon and pkg/fontconfig/build.zig.zon.
+  resource "translate-c" do
+    url "https://codeberg.org/vancluever/translate-c/archive/4e879eb8aba615de112eabd1231ea6e01920cead.tar.gz"
+    sha256 "8fb0f5c6a3e8b3bf0e35225d3abc1230bcf6f1fdf162467f1f747ec2fa5eda07"
+  end
+
+  resource "fontconfig" do
+    url "https://gitlab.freedesktop.org/api/v4/projects/890/packages/generic/fontconfig/2.18.3/fontconfig-2.18.3.tar.xz"
+    sha256 "4f7b554a38cdf78c033f666c8871f3749e14a094f65a07f630c91ed0b43d35e3"
+  end
+
   deny_network_access!
 
   def fetch
     system "cargo", "fetch", *std_cargo_fetch_args
     cd "vendor/libghostty-vt" do
+      # Seed zig's package cache from the resources above (already downloaded
+      # by Homebrew); zig skips any dependency whose hash is already cached.
+      %w[translate-c fontconfig].each do |name|
+        system "zig", "fetch", resource(name).cached_download
+      end
       system "zig", "build", "--fetch=all"
     end
   end
