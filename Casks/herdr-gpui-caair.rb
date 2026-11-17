@@ -1,6 +1,6 @@
 cask "herdr-gpui-caair" do
-  version "20261115.1-caair.5"
-  sha256 "c023999e205398d7fd2956cada180afb31ab5d3fc33d79a77a4433cda44d42ed"
+  version "20261115.1-caair.6"
+  sha256 "9c52845c7c28aece69716bf54921c63219d9c6b7c31560ed1f2812ddcf88463e"
 
   url "https://github.com/CenterForAgenticAI/herdr-gpui/releases/download/v#{version}/Sheprd-#{version}-universal-apple-darwin.dmg"
   name "Sheprd"
