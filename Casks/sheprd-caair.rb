@@ -1,6 +1,6 @@
 cask "sheprd-caair" do
-  version "20261118.1-caair.1"
-  sha256 "5e4f726d2acaa33d156b6945eaaaf288186cdff11a13d70ff7020b2c201774ba"
+  version "20261118.1-caair.2"
+  sha256 "975b9493f89577359b915ae5505c4835ed4ec474a1d3aaa58132300ef11f3ed3"
 
   url "https://github.com/CenterForAgenticAI/sheprd/releases/download/v#{version}/Sheprd-#{version}-universal-apple-darwin.dmg"
   name "Sheprd"
