@@ -1,15 +1,16 @@
 #!/bin/bash
-# Release herdr-gpui-caair: build the Sheprd app (formerly Herdr UI) from a CenterForAgenticAI/herdr-gpui
+# Release sheprd-caair: build the Sheprd app from a CenterForAgenticAI/sheprd
 # commit, tag it v<upstream>-caair.<n>, attach its DMG to a GitHub release on
-# the fork, and point Casks/herdr-gpui-caair.rb at it.
+# the fork, and point Casks/sheprd-caair.rb at it.
 #
-#   scripts/release-herdr-gpui.sh [fork commit or ref]     (default: origin/caair)
+#   scripts/release-sheprd.sh [fork commit or ref]     (default: origin/caair)
 #
-# Runs on the gate host (good-studio, macOS). <upstream> is the penso release
-# the commit is built on, the newest v2* tag below it. The app keeps that
-# version, so the remote hosts it sets up get penso's matching host builds,
-# checked with penso's public update key. It is built with HERDR_UPDATES=package,
-# so it never offers penso's release in place of itself; Homebrew updates it.
+# Runs on the gate host (good-studio, macOS). <upstream> is the upstream
+# (sheprd-labs/sheprd, formerly penso/herdr-gpui) release the commit is built
+# on, the newest v2* tag below it. The app keeps that version, so the remote
+# hosts it sets up get upstream's matching host builds, checked with upstream's
+# public update key. It is built with HERDR_UPDATES=package, so it never offers
+# upstream's release in place of itself; Homebrew updates it.
 #
 # It is signed with this host's self-signed identity, made on the first run in
 # $SIGNING, so macOS keychain grants survive updates. It is not notarized; the
@@ -23,31 +24,32 @@ export PATH="/opt/homebrew/opt/rustup/bin:$HOME/.cargo/bin:/opt/homebrew/bin:$HO
 # which is locked when no one is logged in and fails headless pushes.
 export GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0='' \
   GIT_CONFIG_KEY_1=credential.helper GIT_CONFIG_VALUE_1='!gh auth git-credential'
-FORK=${FORK:-CenterForAgenticAI/herdr-gpui}
-UPSTREAM=${UPSTREAM:-penso/herdr-gpui}
-GATE=${GATE:-$HOME/.local/share/fork-rebase/gates/herdr-gpui.sh}
-WORK=${WORK:-$HOME/Library/Caches/fork-rebase/herdr-gpui-release}
-SIGNING=${SIGNING:-$HOME/.local/share/fork-rebase/signing/herdr-gpui}
+FORK=${FORK:-CenterForAgenticAI/sheprd}
+UPSTREAM=${UPSTREAM:-sheprd-labs/sheprd}
+GATE=${GATE:-$HOME/.local/share/fork-rebase/gates/sheprd.sh}
+WORK=${WORK:-$HOME/Library/Caches/fork-rebase/sheprd-release}
+# Keep this identity across renames: macOS keychain grants are tied to it.
+SIGNING=${SIGNING:-$HOME/.local/share/fork-rebase/signing/sheprd}
 PUBLISH=${PUBLISH:-1}
-# penso's Ed25519 update verification key (public). It verifies
-# host-manifest.sig of release v20261102.2 and is embedded in penso's app.
+# Upstream's Ed25519 update verification key (public). It verifies
+# host-manifest.sig of release v20261102.2 and is embedded in upstream's app.
 UPDATE_KEY=3c1723c89e341edf50b155a2c951f6090a4ad77d56c110639c59ad4b0843592f
 SIGN_NAME="CAAIR Herdr Code Signing"
 tap=$(cd "$(dirname "$0")/.." && pwd)
-cask="$tap/Casks/herdr-gpui-caair.rb"
+cask="$tap/Casks/sheprd-caair.rb"
 fail() { echo "$*" >&2; exit 1; }
 [ "$(uname -s)" = Darwin ] || fail "macOS required"
 [ "$PUBLISH" = 0 ] || git -C "$tap" pull -q --ff-only origin main
 
 [ -d "$WORK/.git" ] || git clone -q "https://github.com/$FORK" "$WORK"
 git -C "$WORK" fetch -q --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
-# The mirror copies no tags; the release tags come from penso. --no-prune:
+# The mirror copies no tags; the release tags come from upstream. --no-prune:
 # under fetch.prune=true this fetch would delete our v2*-caair.* tags, which
-# penso lacks, and the next release would reuse a published tag.
+# upstream lacks, and the next release would reuse a published tag.
 git -C "$WORK" fetch -q --no-tags --no-prune "https://github.com/$UPSTREAM" '+refs/tags/v2*:refs/tags/v2*'
 sha=$(git -C "$WORK" rev-parse "${1:-origin/caair}^{commit}")
 base=$(git -C "$WORK" describe --tags --abbrev=0 --match 'v2*' --exclude '*-caair.*' "$sha") \
-  || fail "no penso release tag below $sha"
+  || fail "no upstream release tag below $sha"
 upstream=${base#v}
 [[ $upstream =~ ^[1-9][0-9]{7}\.[1-9][0-9]*$ ]] || fail "unexpected upstream tag $base"
 
@@ -169,7 +171,7 @@ else
     exit 0
   fi
   if [ -z "$existing" ]; then
-    git -C "$WORK" tag -a "$tag" -m "herdr-gpui-caair $version (penso $base)" "$sha"
+    git -C "$WORK" tag -a "$tag" -m "sheprd-caair $version (upstream $base)" "$sha"
     git -C "$WORK" push -q origin "refs/tags/$tag"
   fi
   upload="$(dirname "$dmg")/$asset"
@@ -178,7 +180,7 @@ else
     gh release upload "$tag" "$upload" -R "$FORK" --clobber
   else
     gh release create "$tag" "$upload" -R "$FORK" --verify-tag --title "Sheprd $version" \
-      --notes "Sheprd $upstream (penso $base) with herdr desktop regions and GitLab custom headers. Install with: brew install --cask centerforagenticai/tap/herdr-gpui-caair"
+      --notes "Sheprd $upstream (upstream $base) with herdr desktop regions and our carried fixes. Install with: brew install --cask centerforagenticai/tap/sheprd-caair"
   fi
 fi
 
@@ -190,11 +192,11 @@ fi
 sed -i '' -E \
   -e "s|^  version \".*\"|  version \"$version\"|" \
   -e "s|^  sha256 .*|  sha256 \"$sum\"|" "$cask"
-git -C "$tap" add Casks/herdr-gpui-caair.rb
+git -C "$tap" add Casks/sheprd-caair.rb
 if git -C "$tap" diff --cached --quiet; then
   echo "cask already at $tag"
   exit 0
 fi
-git -C "$tap" commit -q -m "herdr-gpui-caair $version"
+git -C "$tap" commit -q -m "sheprd-caair $version"
 git -C "$tap" push -q origin HEAD:main
 echo "released $tag ($sha)"
